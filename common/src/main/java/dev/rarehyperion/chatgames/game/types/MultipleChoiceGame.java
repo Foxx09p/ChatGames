@@ -34,7 +34,7 @@ public class MultipleChoiceGame extends AbstractGame {
     public void onStart() {
         this.plugin.platform().dispatchStart(this.type, MessageUtil.plainText(this.getQuestion()), this.getCorrectAnswer().orElse(null), this.config.getRewardCommands());
 
-        // Only show game name as title, no subtitle — answers are too long for screen
+        // Only show game name as title — answers stay in chat
         final Component titleText = MessageUtil.parse(this.config.getDisplayName())
                 .decoration(TextDecoration.BOLD, true);
 
@@ -55,7 +55,10 @@ public class MultipleChoiceGame extends AbstractGame {
 
     @Override
     public void start() {
-        this.plugin.broadcast(this.createStartMessage());
+        // Send full question + answers to chat
+        final String fullQuestion = this.question.question() + "\n" + String.join("\n", this.question.answers());
+        final Component chatMessage = this.config.getStartMessage(MessageUtil.parse(fullQuestion));
+        this.plugin.broadcast(chatMessage);
     }
 
     @Override
@@ -65,14 +68,7 @@ public class MultipleChoiceGame extends AbstractGame {
 
     @Override
     public Component getQuestion() {
-        // Only return the question text for title display, not the answers
         return MessageUtil.parse(this.question.question());
-    }
-
-    public Component getFullQuestion() {
-        // Full question with answers for chat display
-        final String fullQuestion = this.question.question() + "\n" + String.join("\n", question.answers());
-        return MessageUtil.parse(fullQuestion);
     }
 
     @Override
