@@ -36,17 +36,22 @@ public class ReactionGame extends AbstractGame {
     public void onStart() {
         this.plugin.platform().dispatchStart(this.type, MessageUtil.plainText(this.getQuestion()), this.getCorrectAnswer().orElse(null), this.config.getRewardCommands());
 
-        // Only show game name as title — clickable buttons must stay in chat
         final Component titleText = MessageUtil.parse(this.config.getDisplayName())
                 .decoration(TextDecoration.BOLD, true);
 
+        // For click variants show "Check chat!" as subtitle since buttons can't show on screen
+        // For type variants show what they need to type as subtitle
+        final Component subtitleText = "click".equalsIgnoreCase(this.variant.answer())
+                ? MessageUtil.parse("<yellow>Check chat!</yellow>")
+                : this.getQuestion();
+
         final Title.Times times = Title.Times.times(
                 Duration.ofMillis(500),
-                Duration.ofSeconds(3),
+                Duration.ofSeconds(4),
                 Duration.ofMillis(500)
         );
 
-        final Title title = Title.title(titleText, Component.empty(), times);
+        final Title title = Title.title(titleText, subtitleText, times);
 
         for (final UUID uuid : this.plugin.platform().getOnlinePlayers()) {
             this.plugin.platform().getPlayer(uuid).ifPresent(player -> player.showTitle(title));
