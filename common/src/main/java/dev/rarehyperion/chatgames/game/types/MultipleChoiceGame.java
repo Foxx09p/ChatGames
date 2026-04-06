@@ -6,9 +6,13 @@ import dev.rarehyperion.chatgames.game.GameConfig;
 import dev.rarehyperion.chatgames.game.GameType;
 import dev.rarehyperion.chatgames.util.MessageUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -27,42 +31,11 @@ public class MultipleChoiceGame extends AbstractGame {
     }
 
     @Override
-    public void start() {
-        this.plugin.broadcast(this.createStartMessage());
-    }
+    public void onStart() {
+        this.plugin.platform().dispatchStart(this.type, MessageUtil.plainText(this.getQuestion()), this.getCorrectAnswer().orElse(null), this.config.getRewardCommands());
 
-    @Override
-    public boolean checkAnswer(final String answer) {
-        return answer.equalsIgnoreCase(this.question.correctAnswer());
-    }
+        // Only show game name as title, no subtitle — answers are too long for screen
+        final Component titleText = MessageUtil.parse(this.config.getDisplayName())
+                .decoration(TextDecoration.BOLD, true);
 
-    @Override
-    public Component getQuestion() {
-        final String fullQuestion = this.question.question() + "\n" + String.join("\n", question.answers());
-        return MessageUtil.parse(fullQuestion);
-    }
-
-    @Override
-    public List<String> getAnswerOptions() {
-        return this.answerOptions;
-    }
-
-    @Override
-    public Optional<String> getCorrectAnswer() {
-        return Optional.of(this.question.correctAnswer());
-    }
-
-    private List<String> extractAnswerOptions(final List<String> answers) {
-        return answers.stream()
-                .map(answer -> {
-                    final Matcher matcher = OPTION_PATTERN.matcher(answer);
-
-                    if(matcher.find()) {
-                        return matcher.group(1).toLowerCase();
-                    }
-
-                    return answer.trim().toLowerCase();
-                }).collect(Collectors.toList());
-    }
-
-}
+        final Title.Times times = Title.Times.times(
