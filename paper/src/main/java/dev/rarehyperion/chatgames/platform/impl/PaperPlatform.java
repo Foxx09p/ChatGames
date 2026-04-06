@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -63,20 +64,12 @@ public class PaperPlatform implements Platform {
 
     @Override
     public void registerCommands(final ChatGamesCore core) {
-        // Papers API genuinely drives me insane... almost as much as Fabric API which says a lot.
-
         final PaperChatGamesCommand command = new PaperChatGamesCommand(core);
         final LiteralCommandNode<CommandSourceStack> mainNode = command.build();
-
-        // Aliases don't work as expected, so Paper won't have command aliases for now unfortunately.
-//      final LiteralCommandNode<CommandSourceStack> aliasCg = Commands.literal("cg").redirect(mainNode).build();
-//      final LiteralCommandNode<CommandSourceStack> aliasChatgame = Commands.literal("chatgame").redirect(mainNode).build();
 
         this.plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             final Commands commands = event.registrar();
             commands.register(mainNode);
-//          commands.register(aliasCg);
-//          commands.register(aliasChatgame);
         });
     }
 
@@ -91,6 +84,13 @@ public class PaperPlatform implements Platform {
                 .stream()
                 .map(Entity::getUniqueId)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<PlatformPlayer> getPlayer(final UUID uuid) {
+        final Player player = Bukkit.getPlayer(uuid);
+        if (player == null) return Optional.empty();
+        return Optional.of(new PaperPlatformPlayer(player));
     }
 
     @Override
@@ -120,31 +120,21 @@ public class PaperPlatform implements Platform {
 
     @Override
     public PlatformSender wrapSender(final Object sender) {
-        if(sender instanceof CommandSender) {
-            final CommandSender commandSender = (CommandSender) sender;
-            return new PaperPlatformSender(commandSender);
+        if (sender instanceof CommandSender) {
+            return new PaperPlatformSender((CommandSender) sender);
         }
-
         throw new IllegalArgumentException("Unsupported: " + sender);
     }
 
     @Override
     public <T> T getConfigValue(final String path, final Class<T> type, final T defaultValue) {
-        if (!this.plugin.getConfig().contains(path)) {
-            return defaultValue;
-        }
-
+        if (!this.plugin.getConfig().contains(path)) return defaultValue;
         final Object value = this.plugin.getConfig().get(path);
-
-        if (value == null) {
-            return defaultValue;
-        }
-
+        if (value == null) return defaultValue;
         if (!type.isInstance(value)) {
             this.plugin.getLogger().warning("Config value at '" + path + "' is not of type " + type.getSimpleName());
             return defaultValue;
         }
-
         return type.cast(value);
     }
 
