@@ -39,3 +39,61 @@ public class MultipleChoiceGame extends AbstractGame {
                 .decoration(TextDecoration.BOLD, true);
 
         final Title.Times times = Title.Times.times(
+                Duration.ofMillis(500),
+                Duration.ofSeconds(3),
+                Duration.ofMillis(500)
+        );
+
+        final Title title = Title.title(titleText, Component.empty(), times);
+
+        for (final UUID uuid : this.plugin.platform().getOnlinePlayers()) {
+            this.plugin.platform().getPlayer(uuid).ifPresent(player -> player.showTitle(title));
+        }
+
+        this.start();
+    }
+
+    @Override
+    public void start() {
+        this.plugin.broadcast(this.createStartMessage());
+    }
+
+    @Override
+    public boolean checkAnswer(final String answer) {
+        return answer.equalsIgnoreCase(this.question.correctAnswer());
+    }
+
+    @Override
+    public Component getQuestion() {
+        // Only return the question text for title display, not the answers
+        return MessageUtil.parse(this.question.question());
+    }
+
+    public Component getFullQuestion() {
+        // Full question with answers for chat display
+        final String fullQuestion = this.question.question() + "\n" + String.join("\n", question.answers());
+        return MessageUtil.parse(fullQuestion);
+    }
+
+    @Override
+    public List<String> getAnswerOptions() {
+        return this.answerOptions;
+    }
+
+    @Override
+    public Optional<String> getCorrectAnswer() {
+        return Optional.of(this.question.correctAnswer());
+    }
+
+    private List<String> extractAnswerOptions(final List<String> answers) {
+        return answers.stream()
+                .map(answer -> {
+                    final Matcher matcher = OPTION_PATTERN.matcher(answer);
+                    if (matcher.find()) {
+                        return matcher.group(1).toLowerCase();
+                    }
+                    return answer.trim().toLowerCase();
+                }).collect(Collectors.toList());
+    }
+
+}
