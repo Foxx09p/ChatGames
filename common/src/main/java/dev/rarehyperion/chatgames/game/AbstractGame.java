@@ -47,8 +47,8 @@ public abstract class AbstractGame implements Game {
 
         final Title title = Title.title(titleText, subtitleText, times);
 
-        for (final PlatformPlayer player : this.plugin.platform().getOnlinePlayers()) {
-            player.showTitle(title);
+        for (final java.util.UUID uuid : this.plugin.platform().getOnlinePlayers()) {
+            this.plugin.platform().getPlayer(uuid).ifPresent(player -> player.showTitle(title));
         }
 
         this.start();
