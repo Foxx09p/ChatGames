@@ -5,7 +5,10 @@ import dev.rarehyperion.chatgames.platform.PlatformPlayer;
 import dev.rarehyperion.chatgames.util.MessageUtil;
 import dev.rarehyperion.chatgames.util.Templater;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -30,6 +33,24 @@ public abstract class AbstractGame implements Game {
     @Override
     public void onStart() {
         this.plugin.platform().dispatchStart(this.type, MessageUtil.plainText(this.getQuestion()), this.getCorrectAnswer().orElse(null), this.config.getRewardCommands());
+
+        final Component titleText = MessageUtil.parse(this.config.getDisplayName())
+                .decoration(TextDecoration.BOLD, true);
+
+        final Component subtitleText = this.getQuestion();
+
+        final Title.Times times = Title.Times.times(
+                Duration.ofMillis(500),
+                Duration.ofSeconds(5),
+                Duration.ofMillis(500)
+        );
+
+        final Title title = Title.title(titleText, subtitleText, times);
+
+        for (final PlatformPlayer player : this.plugin.platform().getOnlinePlayers()) {
+            player.showTitle(title);
+        }
+
         this.start();
     }
 
@@ -41,15 +62,12 @@ public abstract class AbstractGame implements Game {
     @Override
     public void onWin(final PlatformPlayer winner) {
         final Component message = this.config.getWinMessage(winner.name(), this.getCorrectAnswer().orElse("Unknown"));
-
         this.plugin.broadcast(message);
-
         this.plugin.platform().runTask(() -> {
-            for(final String command : this.config.getRewardCommands()) {
+            for (final String command : this.config.getRewardCommands()) {
                 final String processed = Templater.process(command, winner);
                 this.plugin.platform().dispatchCommand(processed);
             }
-
             this.plugin.platform().dispatchWin(winner, this.type, MessageUtil.plainText(this.getQuestion()), this.getCorrectAnswer().orElse(null), this.config.getRewardCommands());
         });
     }
