@@ -36,7 +36,7 @@ public class ReactionGame extends AbstractGame {
     public void onStart() {
         this.plugin.platform().dispatchStart(this.type, MessageUtil.plainText(this.getQuestion()), this.getCorrectAnswer().orElse(null), this.config.getRewardCommands());
 
-        // Only show game name as title — the clickable button must stay in chat
+        // Only show game name as title — clickable buttons must stay in chat
         final Component titleText = MessageUtil.parse(this.config.getDisplayName())
                 .decoration(TextDecoration.BOLD, true);
 
@@ -57,7 +57,9 @@ public class ReactionGame extends AbstractGame {
 
     @Override
     public void start() {
-        this.plugin.broadcast(this.createStartMessage());
+        // Broadcast the challenge to chat so clickable buttons work
+        final Component chatMessage = this.config.getStartMessage(this.getQuestion());
+        this.plugin.broadcast(chatMessage);
     }
 
     @Override
@@ -65,7 +67,6 @@ public class ReactionGame extends AbstractGame {
         if ("click".equalsIgnoreCase(this.variant.answer())) {
             return answer.equalsIgnoreCase(this.clickToken);
         }
-
         if (this.variant.answer().isEmpty()) return true;
         return answer.equalsIgnoreCase(this.variant.answer());
     }
@@ -73,11 +74,9 @@ public class ReactionGame extends AbstractGame {
     @Override
     public Component getQuestion() {
         final String challenge = this.normalizeEmojis(this.variant.challenge());
-
         if ("click".equalsIgnoreCase(this.variant.answer())) {
             return this.parseButton(challenge);
         }
-
         return MessageUtil.parse(challenge);
     }
 
@@ -86,7 +85,6 @@ public class ReactionGame extends AbstractGame {
         if (this.variant.answer().isEmpty() || "click".equalsIgnoreCase(this.variant.answer())) {
             return Optional.empty();
         }
-
         return Optional.of(this.variant.answer());
     }
 
@@ -98,8 +96,7 @@ public class ReactionGame extends AbstractGame {
 
         while (matcher.find()) {
             if (matcher.start() > lastEnd) {
-                final String beforeText = challenge.substring(lastEnd, matcher.start());
-                builder.append(MessageUtil.parse(beforeText));
+                builder.append(MessageUtil.parse(challenge.substring(lastEnd, matcher.start())));
             }
 
             final String attrString = matcher.group(1);
@@ -124,8 +121,7 @@ public class ReactionGame extends AbstractGame {
         }
 
         if (lastEnd < challenge.length()) {
-            final String afterText = challenge.substring(lastEnd);
-            builder.append(MessageUtil.parse(afterText));
+            builder.append(MessageUtil.parse(challenge.substring(lastEnd)));
         }
 
         return builder.build();
