@@ -9,4 +9,5 @@ public interface PlatformPlayer {
     String name();
     UUID id();
     void showTitle(final Title title);
+    void sendActionBar(final Component component);
 }
