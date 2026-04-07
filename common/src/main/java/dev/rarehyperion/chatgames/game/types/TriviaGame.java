@@ -20,7 +20,9 @@ public class TriviaGame extends AbstractGame {
 
     @Override
     public void start() {
-        this.plugin.broadcast(this.createStartMessage());
+        // Show start message in chat including the question
+        final Component chatMessage = this.config.getStartMessage(this.getQuestion());
+        this.plugin.broadcast(chatMessage);
     }
 
     @Override
