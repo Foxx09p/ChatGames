@@ -33,4 +33,10 @@ public class PaperPlatformPlayer implements PlatformPlayer {
     public void showTitle(final Title title) {
         this.player.showTitle(title);
     }
+
+    @Override
+    public void sendActionBar(final Component component) {
+        this.player.sendActionBar(component);
+    }
+
 }
