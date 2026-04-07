@@ -37,12 +37,13 @@ public class MultipleChoiceGame extends AbstractGame {
         final Component titleText = MessageUtil.parse(this.config.getDisplayName())
                 .decoration(TextDecoration.BOLD, true);
 
-        // Show the question as subtitle on screen, answers show in chat
-        final Component subtitleText = this.getQuestion();
+        // Build full question + answers for subtitle
+        final String fullQuestion = this.question.question() + "\n" + String.join("\n", this.question.answers());
+        final Component subtitleText = MessageUtil.parse(fullQuestion);
 
         final Title.Times times = Title.Times.times(
                 Duration.ofMillis(500),
-                Duration.ofSeconds(4),
+                Duration.ofSeconds(6),
                 Duration.ofMillis(500)
         );
 
@@ -57,7 +58,7 @@ public class MultipleChoiceGame extends AbstractGame {
 
     @Override
     public void start() {
-        // Send full question + answers to chat
+        // Send full question + answers to chat in same format as screen
         final String fullQuestion = this.question.question() + "\n" + String.join("\n", this.question.answers());
         final Component chatMessage = this.config.getStartMessage(MessageUtil.parse(fullQuestion));
         this.plugin.broadcast(chatMessage);
