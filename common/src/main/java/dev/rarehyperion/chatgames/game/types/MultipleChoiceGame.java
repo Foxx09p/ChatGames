@@ -33,26 +33,28 @@ public class MultipleChoiceGame extends AbstractGame {
     @Override
     public void onStart() {
         this.plugin.platform().dispatchStart(this.type, MessageUtil.plainText(this.getQuestion()), this.getCorrectAnswer().orElse(null), this.config.getRewardCommands());
-
+    
         final Component titleText = MessageUtil.parse(this.config.getDisplayName())
                 .decoration(TextDecoration.BOLD, true);
-
-        // Build full question + answers for subtitle
-        final String fullQuestion = this.question.question() + "\n" + String.join("\n", this.question.answers());
-        final Component subtitleText = MessageUtil.parse(fullQuestion);
-
+    
         final Title.Times times = Title.Times.times(
                 Duration.ofMillis(500),
-                Duration.ofSeconds(6),
+                Duration.ofSeconds(3),
                 Duration.ofMillis(500)
         );
-
-        final Title title = Title.title(titleText, subtitleText, times);
-
+    
+        final Title title = Title.title(titleText, Component.empty(), times);
+    
+        final String fullQuestion = this.question.question() + " | " + String.join(" | ", this.question.answers());
+        final Component actionBar = MessageUtil.parse(fullQuestion);
+    
         for (final UUID uuid : this.plugin.platform().getOnlinePlayers()) {
-            this.plugin.platform().getPlayer(uuid).ifPresent(player -> player.showTitle(title));
+            this.plugin.platform().getPlayer(uuid).ifPresent(player -> {
+                player.showTitle(title);
+                player.sendActionBar(actionBar);
+            });
         }
-
+    
         this.start();
     }
 
